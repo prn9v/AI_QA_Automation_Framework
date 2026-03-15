@@ -91,21 +91,32 @@ with st.sidebar:
     st.image("https://huggingface.co/front/assets/huggingface_logo-noborder.svg", width=40)
     st.markdown("### ⚙️ Configuration")
     
-    # ✅ Load from .env automatically, sidebar is just a fallback
+    
     env_key = os.getenv("HF_API_KEY", "")
 
-    hf_key = st.text_input(
-        "Hugging Face API Key",
-        type="password",
-        value=env_key,                    # ✅ Pre-filled from .env
-        placeholder="hf_...",
-        help="Auto-loaded from .env file. Override here if needed."
-    )
+    # Streamlit Cloud stores secrets here
+    try:
+        cloud_key = st.secrets["HF_API_KEY"]
+    except:
+        cloud_key = ""
 
     if env_key:
-        st.success("✅ API key loaded from .env")
+        hf_key = env_key
+        st.success("✅ API key loaded automatically")
+    elif cloud_key:
+        hf_key = cloud_key
+        st.success("✅ API key loaded from cloud secrets")
     else:
-        st.warning("⚠️ No .env key found. Enter manually.")
+        # Only show input box if no key found anywhere
+        hf_key = st.text_input( 
+            "Hugging Face API Key",
+            type="password",
+            placeholder="hf_...",
+            help="Get your free key at huggingface.co/settings/tokens"
+        )
+        
+    if not hf_key:
+        st.warning("⚠️ Enter your HF API key to continue")
     
     num_cases = st.slider("Number of test cases", min_value=2, max_value=10, value=5)
     
